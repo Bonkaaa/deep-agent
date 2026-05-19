@@ -46,55 +46,133 @@ For each pair, your report should contain:
 - Do not use parent traversal paths such as '..'.
 - If any required file cannot be read, stop immediately and report the missing path.
 - After reading required files, produce the final analysis directly.
+- IF FILE MAY EXCEED 100 LINES, DO NOT READ THE ENTIRE FILE AT ONCE. INSTEAD, USE OFFSET-BASED READING TO PROCESS THE FILE IN CHUNKS OF 100 LINES UNTIL YOU REACH THE END OF THE FILE (EOF). THIS APPROACH ENSURES EFFICIENT MEMORY USAGE AND ALLOWS YOU TO HANDLE LARGE FILES WITHOUT ISSUES.
+- Do not cite any line not directly read from tool output.
 
 ## Output Format
 
-Your final output must strictly follow this structure for each pair:
-1. **Section header:** Summary of the source-sink pair (location, function, file, etc.)
-2. **Explanation:** Why this pair is a top risk.
-3. **Code comparisons:** Show relevant code from the pre- and post-vulnerability files (with line numbers), highlighting the changed logic or new path.
-4. **Risk factors:** Bullet or summary at the end of each pair.
+Your output must be a JSON array of exactly 5 objects. Each object represents one suspicious source-sink pair, with the following structure:
+- `source`: An object describing the untrusted input/source.
+  - `name` (string): The variable or function where untrusted input enters.
+  - `file` (string): The filename in which the source appears.
+  - `location` (object):
+    - `line_numbers` (array of int): List of line numbers related to the source.
+    - `code_snippet` (string): The relevant code snippet (as read from the file) showing this source.
+
+- `sink`: An object describing the destination/sink.
+  - `name` (string): The variable, function, or API that acts as the sink.
+  - `file` (string): The filename in which the sink appears.
+  - `location` (object):
+    - `line_numbers` (array of int): List of line numbers related to the sink.
+    - `code_snippet` (string): The relevant code snippet showing the sink.
+
+- `explanation` (string): A concise justification in English for why this pair is risky and how the tainted data could reach the sink.
+
+- `rank` (int): An integer from 1 to 5 indicating the risk level, with 1 being the highest risk and 5 being the lowest among the top 5 pairs.
+
 
 Present the report as an ordered list from highest to lowest risk.
-
+No text, section headers, or additional fields outside this array are allowed.
+If there are fewer than 5 pairs found, the array must still contain 5 elements; unused slots must be set to null.
 ---
 
-# Example Output
-````
-## 1. User Input Reaches Command Execution  
-**Location:** `app/controllers/upload.js` – Function `handleUpload`  
-**Lines involved:** 24-41 (post-commit)
-
-**Explanation:**  
-The commit introduces a new path where untrusted user file input (from HTTP request) is passed directly into a `child_process.exec` call. There is no sanitization or validation for filenames, enabling command injection risk.
-
-**Pre-commit code:**  
-```javascript
-24  function handleUpload(req, res) {
-25      const filename = req.body.filename;
-26      // Previously: only allowed .png uploads
-27      if (!filename.endsWith('.png')) return res.status(400).send('Invalid type');
-28      fs.writeFileSync("/uploads/" + filename, req.body.data);
-29      res.send("ok");
-30  }
+# Output Example
 ```
-
-**Post-commit code:**
-```javascript
-24  function handleUpload(req, res) {
-25      const filename = req.body.filename;
-26      // Input type check removed
-27      fs.writeFileSync("/uploads/" + filename, req.body.data);
-28      // Direct command execution using untrusted input
-29      require('child_process').exec("convert " + filename + " /outputs/" + filename + ".pdf");
-30      res.send("ok");
-31  }
+[
+  {
+    "source": {
+      "name": "req.body.filename",
+      "file": "controllers/upload.js",
+      "location": {
+        "line_numbers": [12, 13],
+        "code_snippet": "const filename = req.body.filename;"
+      }
+    },
+    "sink": {
+      "name": "child_process.exec",
+      "file": "controllers/upload.js",
+      "location": {
+        "line_numbers": [15],
+        "code_snippet": "require('child_process').exec(\"convert \" + filename);"
+      }
+    },
+    "explanation": "User-provided filename is passed directly to a shell command without validation or sanitization, enabling command injection."
+  },
+  {
+    "source": {
+      "name": "req.query.username",
+      "file": "routes/user.js",
+      "location": {
+        "line_numbers": [47],
+        "code_snippet": "const username = req.query.username;"
+      }
+    },
+    "sink": {
+      "name": "db.execute",
+      "file": "routes/user.js",
+      "location": {
+        "line_numbers": [49],
+        "code_snippet": "db.execute(\"DELETE FROM users WHERE name = '\" + username + \"'\");"
+      }
+    },
+    "explanation": "Untrusted username input is concatenated directly into a SQL query, making SQL injection possible."
+  },
+  {
+    "source": {
+      "name": "req.cookies.sessionid",
+      "file": "services/session.js",
+      "location": {
+        "line_numbers": [12],
+        "code_snippet": "const sid = req.cookies.sessionid;"
+      }
+    },
+    "sink": {
+      "name": "fs.writeFileSync",
+      "file": "services/session.js",
+      "location": {
+        "line_numbers": [13],
+        "code_snippet": "fs.writeFileSync(\"/tmp/sessions/\" + sid, JSON.stringify(data));"
+      }
+    },
+    "explanation": "Session ID from user cookie is used as a filename without checks, allowing for arbitrary file write or overwrite."
+  },
+  {
+    "source": {
+      "name": "process.env.SERVICE_KEY",
+      "file": "server/config.js",
+      "location": {
+        "line_numbers": [78],
+        "code_snippet": "res.send({status: \"ok\", secret: process.env.SERVICE_KEY});"
+      }
+    },
+    "sink": {
+      "name": "HTTP response",
+      "file": "server/config.js",
+      "location": {
+        "line_numbers": [78],
+        "code_snippet": "res.send({status: \"ok\", secret: process.env.SERVICE_KEY});"
+      }
+    },
+    "explanation": "Sensitive environment variable is exposed in an HTTP response, enabling information disclosure."
+  },
+  {
+    "source": {
+      "name": "event.upload.name",
+      "file": "lib/logger.js",
+      "location": {
+        "line_numbers": [103],
+        "code_snippet": "fs.appendFileSync(\"/logs/\" + event.upload.name + \".log\", event.info);"
+      }
+    },
+    "sink": {
+      "name": "fs.appendFileSync",
+      "file": "lib/logger.js",
+      "location": {
+        "line_numbers": [103],
+        "code_snippet": "fs.appendFileSync(\"/logs/\" + event.upload.name + \".log\", event.info);"
+      }
+    },
+    "explanation": "Untrusted upload name is used as a log filename, which could allow overwriting or forging log files."
+  }
+]
 ```
-
-**Risk factors:**
-- Source: event.upload.name (attacker-supplied).
-- Sink: filename for file write.
-- No name checks.
-- This path is new in the commit.
-````
-

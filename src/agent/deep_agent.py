@@ -9,10 +9,12 @@ from langgraph.store.memory import InMemoryStore
 try:
     from ..components.get_llm import get_llm
     from ..components.template import SYSTEM_PROMPT
+    from ..components.structured_output import SourceSinkAnalysis
 except ImportError:
     # Allow running this file directly: `python src/agent/deep_agent.py`
     from src.components.get_llm import get_llm
     from src.components.template import SYSTEM_PROMPT
+    from src.components.structured_output import SourceSinkAnalysis
 
 # --- CẤU HÌNH LLM & PROMPT ---
 llm = get_llm()
@@ -58,6 +60,7 @@ agent = create_deep_agent(
         }
     ),
     store=store,
+    response_format=SourceSinkAnalysis
 )
 
 if __name__ == "__main__":
@@ -88,7 +91,7 @@ if __name__ == "__main__":
     )
 
     # Save result to a file for review
-    output_path = ROOT_DIR / "output" / "source_sink_analysis_result.json"
+    output_path = ROOT_DIR / "output" / "source_sink_analysis_result.txt"
     output_path.parent.mkdir(exist_ok=True)
     with open(output_path, "w", encoding="utf-8") as f:
         f.write(str(result))
