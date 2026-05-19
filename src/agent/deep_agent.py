@@ -16,13 +16,10 @@ except ImportError:
     from src.components.template import SYSTEM_PROMPT
     from src.components.structured_output import SourceSinkAnalysis
 
-# --- CẤU HÌNH LLM & PROMPT ---
 llm = get_llm()
 
-# --- CHUẨN BỊ STORE VÀ ĐƯA FILES ĐẦU VÀO ---
 store = InMemoryStore()
 
-# Giả sử bạn đã có các file VIC: pre, post, diff tại các vị trí sau
 ROOT_DIR = Path(__file__).resolve().parents[2]
 
 pre_path = ROOT_DIR / "data" / "index_before.js"
@@ -46,7 +43,6 @@ if skill_path.exists():
     store.put(namespace=("filesystem",), key="/skills/source-sink/SKILL.md",
               value=create_file_data(skill_path.read_text(encoding="utf-8")))
 
-# --- KHỞI TẠO AGENT VỚI BACKEND TỔNG HỢP ---
 agent = create_deep_agent(
     name="SourceSinkIdentificationAgent",
     system_prompt=SYSTEM_PROMPT,
@@ -99,8 +95,3 @@ if __name__ == "__main__":
 
     print("Final Result:")
     print(result)
-    # print("Store contents:")
-    # for ns in store._data:
-    #     print(f"Namespace: {ns}")
-    #     for k in store._data[ns]:
-    #         print(f"  Key: {k}")
