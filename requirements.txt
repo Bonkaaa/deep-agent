@@ -1,2 +1,3 @@
 deepagents
 langchain-ollama
+dotenv

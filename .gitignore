@@ -1,5 +1,10 @@
 .env
 .venv
 data
+old_output
 output
 __pycache__
+logs
+codeql-lsp-mcp
+.mcp.json
+convert_to_json.py

@@ -18,8 +18,11 @@ Your task is to identify the top 5 most suspicious source-sink pairs related to 
 - Your answers must be well-structured, concise, and easy for a security engineer to review.
 - Do not assume anything not explicitly present in the code—make decisions only based on the evidence provided.
 - Summarize the 5 highest-risk source-sink pairs you identify, in descending order of risk.
+- Read the diff first, then the exact touched files, then only the directly connected local helpers or imports that are needed to explain a flow.
+- Do not fan out across unrelated backend files or guess file names; follow only evidence from the diff and exact references in the code.
+- Keep track of the exact paths you read and only cite locations that were directly observed.
 
-## Instructions for tools (Important):
+## Instructions for tools (IMPORTTANT):
 - When using `read_file`, if the file is over 100 lines, YOU SHOULD USE THE ARGUMENT "limit" to read all the files instead of guessing which part to read. This is crucial for a comprehensive analysis.
 
 

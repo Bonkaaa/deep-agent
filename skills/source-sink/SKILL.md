@@ -6,15 +6,25 @@ description: USE THIS SKILL TO IDENTIFY SUSPICIOUS SOURCE-SINK PAIRS IN CODE CHA
 # Extract Suspicious Source-Sink Pairs
 
 ## Input
-You are provided with three files:
-- **Pre-Vulnerability File**: The version of the source code in javascript before the vulnerability-inducing commit.
-- **Post-Vulnerability File**: The version of the code in javascript after the vulnerability-inducing commit.
-- **Diff File**: The code diff showing changes between the two versions.
+You are provided with one VIC folder containing two code snapshots and one diff file:
+- **before/**: The code snapshot before the vulnerability-inducing commit. This represents the state of the codebase prior to the changes that introduced the vulnerability which includes modified files and deleted files in the "after" snapshot but does not include any new files that were added in the "after" snapshot.
+- **after/**: The code snapshot after the vulnerability-inducing commit.
+- **diff.diff**: The code diff showing changes between the two versions.
+
+Each VIC folder contains only the files that changed between the two commits inside the `before/` and `after/` directories, plus `diff.diff` to show the differences.
 
 ## Instructions
 
 ### 1. Comprehend the Code Changes  
-Read all three files, focusing on positions where code has been added, modified, or removed in the diff. The main objective is to find new or changed data flows that could constitute a potential vulnerability.
+Read the files inside `before/` and `after/`, and focus on positions where code has been added, modified, or removed in `diff.diff`. The main objective is to find new or changed data flows that could constitute a potential vulnerability.
+
+### 1.1 Traverse the Backend Precisely
+- Start with `diff.diff` and enumerate the exact touched file paths before reading anything else.
+- Read the matching files in `before/` and `after/` for each touched path.
+- For each changed hunk, inspect the enclosing function or class first, then only the directly connected local helper functions, imported local modules, or callers/callees that are necessary to explain the flow.
+- Expand one hop at a time. Do not scan unrelated backend files, and do not guess filenames that are not explicitly referenced by the diff or by code you already read.
+- If the diff changes a function that calls another local helper, read that helper before exploring anything farther away.
+- Keep locations precise and only cite code lines that were directly read from tool output.
 
 ### 2. Identify Source and Sink Candidates  
 - A **source** is any location where untrusted input may enter the application (e.g. user inputs, file reads, network requests, environment variables).
@@ -47,6 +57,7 @@ For each pair, your report should contain:
 - If any required file cannot be read, stop immediately and report the missing path.
 - After reading required files, produce the final analysis directly.
 - IF FILE MAY EXCEED 100 LINES, DO NOT READ THE ENTIRE FILE AT ONCE. INSTEAD, USE OFFSET-BASED READING TO PROCESS THE FILE IN CHUNKS OF 100 LINES UNTIL YOU REACH THE END OF THE FILE (EOF). THIS APPROACH ENSURES EFFICIENT MEMORY USAGE AND ALLOWS YOU TO HANDLE LARGE FILES WITHOUT ISSUES.
+- Prefer exact path references from `/vic/...`, `/skills/...`, and other paths directly evidenced in the code. Do not invent alternate filenames or directories.
 - Do not cite any line not directly read from tool output.
 
 ## Output Format
