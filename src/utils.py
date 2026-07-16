@@ -37,4 +37,18 @@ def setup_logger(log_file_name: str, logger_name: str, log_level=logging.INFO) -
         logger.addHandler(file_handler)
 
     return logger
+
+def collect_tool_calls(result):
+    tool_calls = []
+    messages = result.get("messages", []) if isinstance(result, dict) else []
+
+    for message in messages:
+        message_tool_calls = getattr(message, "tool_calls", None)
+        if message_tool_calls is None and isinstance(message, dict):
+            message_tool_calls = message.get("tool_calls")
+
+        if message_tool_calls:
+            tool_calls.extend(message_tool_calls)
+
+    return tool_calls
     
