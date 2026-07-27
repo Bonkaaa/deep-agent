@@ -46,6 +46,7 @@ class SourceSinkAgent:
             ),
             store=self.store,
             response_format=SourceSinkAnalysis,
+            skills=["/skills/source-sink"],
         )
 
     def run(self, vuln_type: str):

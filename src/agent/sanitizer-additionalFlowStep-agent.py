@@ -48,6 +48,7 @@ class SanitizerAdditionalFlowStepAgent:
             ),
             store=self.store,
             response_format=FlowModelingAnalysis,
+            skills=["/skills/sanitizer-additionalFlowStep"],
         )
     def run(self, vuln_type: str):
         logger.info(f"SanitizerAdditionalFlowStepAgent created for data_name: {self.data_name}")

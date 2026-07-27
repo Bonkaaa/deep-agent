@@ -46,6 +46,7 @@ class IdentifyVulnTypeAgent:
             ),
             store=self.store,
             response_format=VulnerabilityType,
+            skills=["/skills/identify-vuln-type"],
         )
     def run(self, data_name: str):
         self.data_name = data_name

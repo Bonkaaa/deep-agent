@@ -89,3 +89,13 @@ class FlowModelingAnalysis(BaseModel):
     reasoning: str = Field(
         ..., description="Free-text chain-of-thought explaining the overall flow modeling strategy."
     )
+
+# =============================================
+class GenerationStatus(str, Enum):
+    SUCCESS = "success"
+    FAILURE = "failure"
+
+class QueryGeneration(BaseModel):
+    status: GenerationStatus
+    query_path: str = Field(..., description="The path to the generated query.")
+    explanation: str = Field(..., description="A detailed explanation of the generated query and how it exposes the vulnerability.")
