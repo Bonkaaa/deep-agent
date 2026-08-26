@@ -10,7 +10,7 @@ ALLOWED_MCP_TOOLS_QUERY_GENERATE = [
     "codeql_resolve_language",
     "list_codeql_databases",
     "register_database",
-    "codeql_resolve_packs"
+    "codeql_resolve_packs",
     "codeql_pack_ls",
     "codeql_pack_install",
     "codeql_resolve_library-path",

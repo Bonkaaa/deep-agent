@@ -23,12 +23,11 @@ async def create_mcp_client() -> MultiServerMCPClient:
             "codeql": {
                 "transport": "stdio",
                 "command": "node",
-                "args": ["codeql-development-mcp-server/server/dist/codeql-development-mcp-server.js"],
+                "args": ["mcp_server_wrapper.js"],
                 "env": {
                     "CODEQL_CLI_PATH": CODEQL_CLI_PATH,
                     "WORKSPACE_ROOT": ROOT_DIR_STR,
                 }
-
             }
         }
     )

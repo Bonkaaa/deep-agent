@@ -98,4 +98,5 @@ class GenerationStatus(str, Enum):
 class QueryGeneration(BaseModel):
     status: GenerationStatus
     query_path: str = Field(..., description="The path to the generated query.")
+    query_content: str = Field(..., description="The complete text of the generated CodeQL query.")
     explanation: str = Field(..., description="A detailed explanation of the generated query and how it exposes the vulnerability.")

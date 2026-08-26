@@ -1,3 +1,4 @@
 deepagents
-langchain-ollama
+langchain-ollama    
 dotenv
+langchain-mistralai
