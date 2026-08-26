@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "codeql-lsp-mcp": {
+      "command": "node",
+      "args": ["codeql-lsp-mcp/dist/index.js"]
+    }
+  }
+}
